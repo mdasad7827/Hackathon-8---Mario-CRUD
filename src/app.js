@@ -2,7 +2,6 @@ const express = require("express");
 const app = express();
 const bodyParser = require("body-parser");
 const marioModel = require("./models/marioChar");
-const port = 3000;
 let newId = marioModel.length;
 // Middlewares
 app.use(express.urlencoded());
@@ -17,24 +16,25 @@ app.get("/mario", (req, res) => {
   res.send(marioModel);
 });
 
-app.get("/mario/:id", (req, res) => {
-  const body = req.body;
-  const marioId = Number(req.params.id);
-  let found = false;
+// app.get("/mario/:id", async (req, res) => {
+//   const marioId = Number(req.params.id);
 
-  marioModel.forEach((mario) => {
-    if (mario.id === marioId) {
-      found = true;
-      res.send(mario);
-    }
-  });
+//   try {
+//     const marioFound = await marioModel.findOne({ _id: marioId });
 
-  if (!found) {
-    res.status(400).send({
-      message: "error.message",
-    });
-  }
-});
+//     if (marioFound == null) {
+//       res.status(400).send({
+//         message: "Id not found",
+//       });
+//     } else {
+//       res.send(marioFound);
+//     }
+//   } catch (err) {
+//     res.status(400).send({
+//       message: err.message,
+//     });
+//   }
+// });
 
 app.post("/mario", (req, res) => {
   const body = req.body;
@@ -107,7 +107,5 @@ app.delete("/mario/:id", (req, res) => {
     res.status(200).send({ message: "character deleted" });
   }
 });
-
-app.listen(port);
 
 module.exports = app;
