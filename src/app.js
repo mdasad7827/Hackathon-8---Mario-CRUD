@@ -27,17 +27,19 @@ app.get("/mario/:id", async (req, res) => {
   }
 });
 
+const isNullOrUndefined = (val) => val === null || val === undefined;
+
 app.post("/mario", async (req, res) => {
   const newMario = req.body;
 
-  if (newMario.name !== "" && newMario.weight !== "") {
-    const newMarioDoc = new marioModel(newMario);
-    await newMarioDoc.save();
-    res.status(201).send(newMarioDoc);
-  } else {
+  if (isNullOrUndefined(newMario.name) || isNullOrUndefined(newMario.weight)) {
     res.status(400).send({
       message: "either name or weight is missing",
     });
+  } else {
+    const newMarioDoc = new marioModel(newMario);
+    await newMarioDoc.save();
+    res.status(201).send(newMarioDoc);
   }
 });
 
