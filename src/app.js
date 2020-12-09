@@ -48,16 +48,18 @@ app.patch("/mario/:id", async (req, res) => {
   const id = req.params.id;
   try {
     const existingMario = await marioModel.findById(id);
-    if (body.name !== "" || body.weight !== "") {
-      if (body.name !== "") {
+    if (isNullOrUndefined(body.name) && isNullOrUndefined(body.weight)) {
+      res.status(400).send({ message: "both name and weight missing" });
+    } else {
+      if (!isNullOrUndefined(body.name)) {
         existingMario.name = body.name;
       }
-      if (body.weight !== "") {
+      if (!isNullOrUndefined(body.weight)) {
         existingMario.weight = body.weight;
       }
+      await existingMario.save();
+      res.send(existingMario);
     }
-    await existingMario.save();
-    res.send(existingMario);
   } catch (error) {
     res.status(400).send({ message: error.message });
   }
