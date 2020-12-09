@@ -53,9 +53,9 @@ app.patch("/mario/:id", async (req, res) => {
       if (body.weight !== "") {
         existingMario.weight = body.weight;
       }
-      await existingMario.save();
-      res.send(existingMario);
     }
+    await existingMario.save();
+    res.send(existingMario);
   } catch (error) {
     res.status(400).send({ message: error.message });
   }
