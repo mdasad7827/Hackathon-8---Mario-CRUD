@@ -53,7 +53,7 @@ app.patch("/mario/:id", async (req, res) => {
       if (body.weight !== "") {
         existingMario.weight = body.weight;
       }
-      existingMario.save();
+      await existingMario.save();
       res.send(existingMario);
     }
   } catch (error) {
