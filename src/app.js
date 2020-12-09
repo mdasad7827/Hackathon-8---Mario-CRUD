@@ -2,7 +2,6 @@ const express = require("express");
 const app = express();
 const bodyParser = require("body-parser");
 const marioModel = require("./models/marioChar");
-let newId = marioModel.length;
 // Middlewares
 app.use(express.urlencoded());
 
@@ -12,43 +11,29 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 // your code goes here
-app.get("/mario", (req, res) => {
-  res.send(marioModel);
+app.get("/mario", async (req, res) => {
+  res.send(await marioModel.find());
 });
 
-// app.get("/mario/:id", async (req, res) => {
-//   const marioId = Number(req.params.id);
+app.get("/mario/:id", async (req, res) => {
+  const id = req.params.id;
 
-//   try {
-//     const marioFound = await marioModel.findOne({ _id: marioId });
+  try {
+    res.send(await marioModel.findById(id));
+  } catch (err) {
+    res.status(400).send({
+      message: err.message,
+    });
+  }
+});
 
-//     if (marioFound == null) {
-//       res.status(400).send({
-//         message: "Id not found",
-//       });
-//     } else {
-//       res.send(marioFound);
-//     }
-//   } catch (err) {
-//     res.status(400).send({
-//       message: err.message,
-//     });
-//   }
-// });
+app.post("/mario", async (req, res) => {
+  const newMario = req.body;
 
-app.post("/mario", (req, res) => {
-  const body = req.body;
-
-  if (body.name !== "" && body.weight !== "") {
-    newId++;
-    const newMario = {
-      id: Number(newId),
-      name: body.name,
-      weight: Number(body.weight),
-    };
-
-    marioModel.push(newMario);
-    res.status(201).send(newMario);
+  if (newMario.name !== "" && newMario.weight !== "") {
+    const newMarioDoc = new marioModel(newMario);
+    await newMarioDoc.save();
+    res.status(201).send(newMarioDoc);
   } else {
     res.status(400).send({
       message: "either name or weight is missing",
@@ -56,55 +41,34 @@ app.post("/mario", (req, res) => {
   }
 });
 
-app.patch("/mario/:id", (req, res) => {
+app.patch("/mario/:id", async (req, res) => {
   const body = req.body;
-  if (body.name !== "" || body.weight !== "") {
-    const marioId = Number(req.params.id);
-    let found = false;
-
-    marioModel.forEach((mario) => {
-      if (mario.id === marioId) {
-        found = true;
-        if (body.hasOwnProperty("name")) {
-          mario.name = body.name;
-        }
-        if (body.hasOwnProperty("weight")) {
-          mario.weight = Number(body.weight);
-        }
-
-        res.send(mario);
+  const id = req.params.id;
+  try {
+    const existingMario = await marioModel.findById(id);
+    if (body.name !== "" || body.weight !== "") {
+      if (body.name !== "") {
+        existingMario.name = body.name;
       }
-    });
-
-    if (!found) {
-      res.status(400).send({
-        message: "error.message",
-      });
+      if (body.weight !== "") {
+        existingMario.weight = body.weight;
+      }
+      existingMario.save();
+      res.send(existingMario);
     }
-  } else {
-    res.status(400).send({
-      message: "error.message",
-    });
+  } catch (error) {
+    res.status(400).send({ message: error.message });
   }
 });
 
-app.delete("/mario/:id", (req, res) => {
-  const marioId = Number(req.params.id);
-  let idToDelete = 0;
-  let found = false;
-  marioModel.forEach((mario, idx) => {
-    if (mario.id === marioId) {
-      found = true;
-      idToDelete = idx;
-    }
-  });
-  if (!found) {
-    res.status(400).send({
-      message: "error.message",
-    });
-  } else {
-    marioModel.splice(idToDelete, 1);
-    res.status(200).send({ message: "character deleted" });
+app.delete("/mario/:id", async (req, res) => {
+  const id = req.params.id;
+  try {
+    const marioToDelete = await marioModel.findById(id);
+    await marioModel.deleteOne({ _id: id });
+    res.send({ message: "character deleted" });
+  } catch (err) {
+    res.status(400).send({ message: err.message });
   }
 });
 
